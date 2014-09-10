@@ -1,0 +1,14 @@
+{
+    "name": "flowpack/hal-client",
+    "type": "typo3-flow-package",
+    "description": "HAL client support package for TYPO3 Flow",
+    "license": "LGPL-3.0+",
+    "require": {
+        "typo3/flow": "*"
+    },
+    "autoload": {
+        "psr-0": {
+            "Flowpack\\Hal\\Client\\": "Classes"
+        }
+    }
+}
