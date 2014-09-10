@@ -12,7 +12,6 @@ namespace Flowpack\Hal\Client;
  *                                                                        */
 
 use TYPO3\Flow\Annotations as Flow;
-use TYPO3\Flow\Http\Client\Browser;
 
 /**
  * Link
@@ -21,12 +20,6 @@ class AbstractLink {
 
 	/**
 	 * @var string
-	 * @see http://www.w3.org/TR/1999/REC-xml-names-19990114/#NT-NCName
-	 */
-	protected $name;
-
-	/**
-	 * @var null|string
 	 */
 	protected $href;
 
@@ -34,6 +27,11 @@ class AbstractLink {
 	 * @var boolean
 	 */
 	protected $templated = FALSE;
+
+	/**
+	 * @var string
+	 */
+	protected $name;
 
 	/**
 	 * Constructor.
@@ -44,9 +42,10 @@ class AbstractLink {
 		if (!isset($data['href'])) {
 			throw new \RuntimeException('Property href must be set.', 1410345835);
 		}
+
 		$this->href = $data['href'];
-		$this->name = isset($data['name']) ? $data['name'] : NULL;
 		$this->templated = isset($data['templated']) ? (boolean)$data['templated'] : FALSE;
+		$this->name = isset($data['name']) ? $data['name'] : NULL;
 	}
 
 	/**
@@ -83,7 +82,7 @@ class AbstractLink {
 	 *
 	 * @param array $variables Required if the link is templated
 	 * @return string
-	 * @throws \RuntimeException When call with property "href" empty
+	 * @todo properly support URI Templates
 	 */
 	private function prepareUrl(array $variables = array()) {
 		if (!$this->templated) {

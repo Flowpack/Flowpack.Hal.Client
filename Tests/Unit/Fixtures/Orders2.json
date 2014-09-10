@@ -1,0 +1,38 @@
+{
+	"_links": {
+		"self": {"href": "/orders?page=2"},
+		"prev": {"href": "/orders"},
+		"next": {"href": "/orders?page=3"},
+		"find": {"href": "/orders{?id}", "templated": true},
+		"curies": [
+			{
+				"name": "acme",
+				"href": "http://docs.acme.com/relations/{rel}",
+				"templated": true
+			}
+		],
+		"acme:widgets": {"href": "/widgets"}
+	},
+	"_embedded": {
+		"orders": [
+			{
+				"_links": {
+					"self": {"href": "/orders/110"},
+					"basket": {"href": "/baskets/89712"},
+					"customer": {"href": "/customers/7809"}
+				},
+				"total": 10.00,
+				"currency": "USD",
+				"status": "shipped"
+			}
+		],
+		"customer": {
+			"_links": {
+				"self": {"href": "/customers/12369"}
+			},
+			"name": "John Doe"
+		}
+	},
+	"currentlyProcessing": 14,
+	"shippedToday": 20
+}

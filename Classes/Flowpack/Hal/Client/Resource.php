@@ -62,7 +62,7 @@ class Resource implements \ArrayAccess {
 	 *
 	 * @return void
 	 */
-	protected function initializeObject() {
+	public function initializeObject() {
 		$this->links = isset($this->properties['_links']) ? $this->properties['_links'] : $this->links;
 		$this->embedded = isset($this->properties['_embedded']) ? $this->properties['_embedded'] : $this->embedded;
 
@@ -101,14 +101,121 @@ class Resource implements \ArrayAccess {
 	}
 
 	/**
+	 * Returns true if this resource has a property, embedded value or link with the given name.
+	 *
+	 * @param string $name
+	 * @return boolean
+	 */
+	public function has($name) {
+		return $this->hasProperty($name) || $this->hasEmbedded($name) || $this->hasLink($name);
+	}
+
+	/**
+	 * Returns the property, embedded value or link with the given name.
+	 *
+	 * The existence is checked in this order: property, embedded, link.
+	 *
+	 * @param string $name
+	 * @return Resource|ResourceCollection|NULL
+	 */
+	public function get($name) {
+		if (array_key_exists($name, $this->properties)) {
+			return $this->properties[$name];
+		}
+
+		if (array_key_exists($name, $this->embedded)) {
+			return $this->getEmbedded($name);
+		}
+
+		if (array_key_exists($name, $this->links)) {
+			return $this->getLinkValue($name);
+		}
+
+		return NULL;
+	}
+
+	/**
+	 * Returns the value of the property with the given name or NULL
+	 *
+	 * @param string $name
+	 * @return mixed
+	 */
+	public function getProperty($name) {
+		if (!array_key_exists($name, $this->properties)) {
+			return NULL;
+		}
+
+		return $this->properties[$name];
+	}
+
+	/**
+	 * Returns an array of all properties this resource has.
+	 *
 	 * @return array
 	 */
-	public function getEmbedded() {
-		return $this->embedded;
+	public function getProperties() {
+		return $this->properties;
+	}
+
+	/**
+	 * Returns true if this resource has a property with the given name.
+	 *
+	 * @param string $name
+	 * @return boolean
+	 */
+	public function hasProperty($name) {
+		return isset($this->properties[$name]);
+	}
+
+	/**
+	 * @param string $name
+	 * @return Resource|ResourceCollection
+	 */
+	public function getEmbedded($name) {
+		if (!is_object($this->embedded[$name])) {
+			if (is_integer(key($this->embedded[$name])) || empty($this->embedded[$name])) {
+				$this->embedded[$name] = new ResourceCollection($this->browser, $this->embedded[$name]);
+			} else {
+				$this->embedded[$name] = new Resource($this->browser, $this->embedded[$name]);
+			}
+		}
+
+		return $this->embedded[$name];
 	}
 
 	/**
 	 * @return array
+	 * @todo should this return an array of resource instances?
+	 */
+	public function getEmbeddeds() {
+		return $this->embedded;
+	}
+
+	/**
+	 * Returns true if this resource has an embedded resource with the given name.
+	 *
+	 * @param string $name
+	 * @return boolean
+	 */
+	public function hasEmbedded($name) {
+		return isset($this->embedded[$name]);
+	}
+
+	/**
+	 * Returns true if this resource has a link with the given name.
+	 *
+	 * @param string $name
+	 * @return boolean
+	 */
+	public function hasLink($name) {
+		return isset($this->links[$name]);
+	}
+
+	/**
+	 * Returns an array of all links this resource carries.
+	 *
+	 * @return array
+	 * @todo should this return an array of link instances?
 	 */
 	public function getLinks() {
 		return $this->links;
@@ -117,6 +224,7 @@ class Resource implements \ArrayAccess {
 	/**
 	 * @param string $name
 	 * @return Link
+	 * @todo support link collections
 	 */
 	public function getLink($name) {
 		if (!array_key_exists($name, $this->links)) {
@@ -124,23 +232,22 @@ class Resource implements \ArrayAccess {
 		}
 
 		if (!$this->links[$name] instanceof Link) {
-			$this->links[$name] = new Link(array_merge(array('name' => $name), $this->links[$name]), $this->browser);
+			$this->links[$name] = new Link(array_merge(array('name' => $name), $this->links[$name]));
 		}
 
 		return $this->links[$name];
 	}
 
 	/**
-	 * Create a resource from link href.
+	 * Returns a resource built from the link with the given name.
 	 *
 	 * @param string $name
 	 * @param array $variables Required if the link is templated
-	 * @return Resource
+	 * @return Resource|ResourceCollection
+	 * @todo support link collections
 	 */
-	public function getLinkResource($name, array $variables = array()) {
-		$link = $this->getLink($name);
-
-		return self::createFromUri($link->getHref($variables), $this->browser);
+	public function getLinkValue($name, array $variables = array()) {
+		return self::createFromUri($this->getLink($name)->getHref($variables), $this->browser);
 	}
 
 	/**
@@ -156,106 +263,19 @@ class Resource implements \ArrayAccess {
 	}
 
 	/**
-	 * @return array
-	 */
-	public function getProperties() {
-		return $this->properties;
-	}
-
-	/**
-	 * @param string $name
-	 * @return Resource|ResourceCollection|NULL
-	 */
-	public function get($name) {
-		if (array_key_exists($name, $this->properties)) {
-			return $this->properties[$name];
-		}
-
-		if (!array_key_exists($name, $this->embedded)) {
-			if (!$this->buildResourceValue($name)) {
-				return NULL;
-			}
-		}
-
-		return $this->getEmbeddedValue($name);
-	}
-
-	/**
-	 * @param string $name
-	 * @return boolean
-	 */
-	public function has($name) {
-		return $this->hasProperty($name) || $this->hasLink($name) || $this->hasEmbedded($name);
-	}
-
-	/**
-	 * @param string $name
-	 * @return boolean
-	 */
-	public function hasLink($name) {
-		return isset($this->links[$name]);
-	}
-
-	/**
-	 * @param string $name
-	 * @return boolean
-	 */
-	public function hasProperty($name) {
-		return isset($this->properties[$name]);
-	}
-
-	/**
-	 * @param string $name
-	 * @return boolean
-	 */
-	public function hasEmbedded($name) {
-		return isset($this->embedded[$name]);
-	}
-
-	/**
-	 * @param string $name
-	 * @return boolean
-	 */
-	protected function buildResourceValue($name) {
-		$link = $this->getLink($name);
-
-		if (!$link) {
-			return FALSE;
-		}
-
-		$this->embedded[$name] = $this->getResource($link);
-
-		return TRUE;
-	}
-
-	/**
 	 * Returns the href of curie assoc given by link.
 	 *
-	 * @param Link $link
+	 * @param string $linkName
 	 * @return string
 	 */
-	public function getCurieHref(Link $link) {
-		if (NULL === $link->getNCName() || NULL === $this->getCurie($link->getNCName())) {
+	public function getCurieHref($linkName) {
+		$link = $this->getLink($linkName);
+
+		if ($link->getPrefix() === NULL || $this->getCurie($link->getPrefix()) ===  NULL) {
 			return NULL;
 		}
 
-		return $this->getCurie($link->getNCName())->getHref(array('rel' => $link->getReference()));
-	}
-
-	/**
-	 * @param string $name
-	 * @return Resource|ResourceCollection
-	 */
-	protected function getEmbeddedValue($name) {
-		if (!is_object($this->embedded[$name])) {
-			if (is_integer(key($this->embedded[$name])) || empty($this->embedded[$name])) {
-				$this->embedded[$name] = new ResourceCollection($this->browser, $this->embedded[$name]);
-			} else {
-				$this->embedded[$name] = new self($this->browser, $this->embedded[$name]);
-			}
-		}
-
-		return $this->embedded[$name];
+		return $this->getCurie($link->getPrefix())->getHref(array('rel' => $link->getReference()));
 	}
 
 	/**
@@ -285,4 +305,5 @@ class Resource implements \ArrayAccess {
 	public function offsetUnset($offset) {
 		throw new \RuntimeException('Operation not available');
 	}
+
 }

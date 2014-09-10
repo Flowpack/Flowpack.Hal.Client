@@ -20,23 +20,40 @@ use TYPO3\Flow\Http\Client\Browser;
 class Link extends AbstractLink {
 
 	/**
-	 * Prefix curie if the name is a curie.
-	 * Relation to curie name.
-	 *
-	 * @var NULL|string
+	 * @var string
 	 * @see http://www.w3.org/TR/curie/#s_syntax
 	 */
-	protected $ncName;
+	protected $prefix;
 
 	/**
-	 * @var NULL|string
+	 * @var string
 	 */
 	protected $reference;
 
 	/**
-	 * @var NULL|string
+	 * @var string
+	 */
+	protected $type;
+
+	/**
+	 * @var string
+	 */
+	protected $deprecation;
+
+	/**
+	 * @var string
+	 */
+	protected $profile;
+
+	/**
+	 * @var string
 	 */
 	protected $title;
+
+	/**
+	 * @var string
+	 */
+	protected $hreflang;
 
 	/**
 	 * Constructor.
@@ -47,32 +64,64 @@ class Link extends AbstractLink {
 	public function __construct(array $data) {
 		parent::__construct($data);
 
-		$this->title = isset($data['title']) ? $data['title'] : NULL;
-
 		if ($this->name !== NULL && strpos($this->name, ':') !== FALSE) {
-			list($this->ncName, $this->reference) = explode(':', $this->name, 2);
+			list($this->prefix, $this->reference) = explode(':', $this->name, 2);
 		}
+
+		$this->type = isset($data['type']) ? $data['type'] : NULL;
+		$this->deprecation = isset($data['deprecation']) ? $data['deprecation'] : NULL;
+		$this->profile = isset($data['profile']) ? $data['profile'] : NULL;
+		$this->title = isset($data['title']) ? $data['title'] : NULL;
+		$this->hreflang = isset($data['hreflang']) ? $data['hreflang'] : NULL;
 	}
 
 	/**
-	 * @return NULL|string
+	 * @return string
 	 */
-	public function getNCName() {
-		return $this->ncName;
+	public function getPrefix() {
+		return $this->prefix;
 	}
 
 	/**
-	 * @return NULL|string
+	 * @return string
 	 */
 	public function getReference() {
 		return $this->reference;
 	}
 
 	/**
-	 * @return NULL|string
+	 * @return string
+	 */
+	public function getType() {
+		return $this->type;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getDeprecation() {
+		return $this->deprecation;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getProfile() {
+		return $this->profile;
+	}
+
+	/**
+	 * @return string
 	 */
 	public function getTitle() {
 		return $this->title;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getHreflang() {
+		return $this->hreflang;
 	}
 }
 
