@@ -8,7 +8,7 @@
     },
     "autoload": {
         "psr-0": {
-            "Flowpack\\Hal\\Client\\": "Classes"
+            "Flowpack\\Hal\\Client": "Classes"
         }
     }
 }
