@@ -13,6 +13,7 @@ namespace Flowpack\Hal\Client;
 
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Http\Client\Browser;
+use TYPO3\Flow\Http\Uri;
 
 /**
  * Resource
@@ -45,13 +46,20 @@ class Resource implements \ArrayAccess {
 	protected $browser;
 
 	/**
+	 * @var Uri
+	 */
+	protected $baseUri;
+
+	/**
 	 * @param Browser $browser
+	 * @param Uri $baseUri
 	 * @param array $properties
 	 * @param array $links
 	 * @param array $embedded
 	 */
-	public function __construct(Browser $browser, array $properties, array $links = array(), array $embedded = array()) {
+	public function __construct(Browser $browser, Uri $baseUri, array $properties, array $links = array(), array $embedded = array()) {
 		$this->browser = $browser;
+		$this->baseUri = $baseUri;
 		$this->properties = $properties;
 		$this->links = $links;
 		$this->embedded = $embedded;
@@ -79,16 +87,16 @@ class Resource implements \ArrayAccess {
 	/**
 	 *
 	 *
-	 * @param string $uri
+	 * @param string|Uri $uri
 	 * @param Browser $browser
+	 * @param Uri $baseUri
 	 * @return Resource
 	 */
-	static public function createFromUri($uri, Browser $browser) {
+	static public function createFromUri($uri, Browser $browser, Uri $baseUri = NULL) {
 		$response = $browser->request($uri);
 
 		if (substr($response->getHeader('Content-Type'), 0, 20) !== 'application/hal+json') {
-			// disabled for now, server sends wrong header...
-			// throw new \RuntimeException('Invalid content type received: ' . $response->getHeader('Content-Type'), 1410345012);
+			throw new \RuntimeException('Invalid content type received: ' . $response->getHeader('Content-Type'), 1410345012);
 		}
 
 		$data = json_decode($response->getContent(), TRUE);
@@ -97,7 +105,18 @@ class Resource implements \ArrayAccess {
 			throw new \RuntimeException('Invalid JSON format returned from ' . $uri, 1410259050);
 		}
 
-		return new Resource($browser, $data);
+		if ($baseUri === NULL) {
+			if (is_string($uri)) {
+				$baseUri = new Uri($uri);
+			} else {
+				$baseUri = clone $uri;
+			}
+			$baseUri->setPath(NULL);
+			$baseUri->setFragment(NULL);
+			$baseUri->setQuery(NULL);
+		}
+
+		return new Resource($browser, $baseUri, $data);
 	}
 
 	/**
@@ -174,9 +193,9 @@ class Resource implements \ArrayAccess {
 	public function getEmbedded($name) {
 		if (!is_object($this->embedded[$name])) {
 			if (is_integer(key($this->embedded[$name])) || empty($this->embedded[$name])) {
-				$this->embedded[$name] = new ResourceCollection($this->browser, $this->embedded[$name]);
+				$this->embedded[$name] = new ResourceCollection($this->browser, $this->baseUri, $this->embedded[$name]);
 			} else {
-				$this->embedded[$name] = new Resource($this->browser, $this->embedded[$name]);
+				$this->embedded[$name] = new Resource($this->browser, $this->baseUri, $this->embedded[$name]);
 			}
 		}
 
@@ -247,7 +266,14 @@ class Resource implements \ArrayAccess {
 	 * @todo support link collections
 	 */
 	public function getLinkValue($name, array $variables = array()) {
-		return self::createFromUri($this->getLink($name)->getHref($variables), $this->browser);
+		$uri = new Uri($this->getLink($name)->getHref($variables));
+
+		if ($uri->getHost() === NULL) {
+			$uri->setScheme($this->baseUri->getScheme());
+			$uri->setHost($this->baseUri->getHost());
+			$uri->setPath($this->baseUri->getPath() . $uri->getPath());
+		}
+		return self::createFromUri($uri, $this->browser);
 	}
 
 	/**

@@ -27,7 +27,7 @@ class HalCommandController extends CommandController {
 	protected $browser;
 
 	/**
-	 * Blah
+	 * Allows to test a HAL URI.
 	 *
 	 * @param string $uri
 	 * @return void
@@ -39,19 +39,18 @@ class HalCommandController extends CommandController {
 		$resource = \Flowpack\Hal\Client\Resource::createFromUri($uri, $this->browser);
 
 		$this->outputLine('Properties');
-		xdebug_break();
 		foreach ($resource->getProperties() as $k => $v) {
 			echo $k . ' - ' . (is_array($v) ? 'array' : $v) . PHP_EOL;
 		}
 
 		$this->outputLine('Links');
 		foreach ($resource->getLinks() as $k => $v) {
-			echo $k . ' - ' . (is_array($v) ? 'array' : $v) . PHP_EOL;
+			echo $k . ' - ' . (is_array($v) ? count($v) . ' items' : $v->getHref()) . PHP_EOL;
 		}
 
 		$this->outputLine('Embedded');
-		foreach ($resource->getEmbedded() as $k => $v) {
-			echo $k . ' - ' . (is_array($v) ? 'array' : $v) . PHP_EOL;
+		foreach ($resource->getEmbeddeds() as $k => $v) {
+			echo $k . ' - ' . (is_array($v) ? count($v) . ' items' : $v) . PHP_EOL;
 		}
 
 		$this->quit();

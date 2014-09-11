@@ -13,6 +13,7 @@ namespace Flowpack\Hal\Client;
 
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Http\Client\Browser;
+use TYPO3\Flow\Http\Uri;
 
 /**
  * ResourceCollection
@@ -30,10 +31,18 @@ class ResourceCollection implements \Iterator, \Countable, \ArrayAccess {
 	protected $browser;
 
 	/**
+	 * @var Uri
+	 */
+	protected $baseUri;
+
+	/**
 	 * @param Browser $browser
+	 * @param Uri $baseUri
 	 * @param array $collection
 	 */
-	public function __construct(Browser $browser, array $collection = array()) {
+	public function __construct(Browser $browser, Uri $baseUri, array $collection = array()) {
+		$this->baseUri = $baseUri;
+
 		$this->browser = $browser;
 		$this->iterator = new \ArrayIterator($collection);
 	}
@@ -145,7 +154,7 @@ class ResourceCollection implements \Iterator, \Countable, \ArrayAccess {
 	 * @return Resource
 	 */
 	protected function createResource(array $data) {
-		return new Resource($this->browser, $data);
+		return new Resource($this->browser, $this->baseUri, $data);
 	}
 
 }
