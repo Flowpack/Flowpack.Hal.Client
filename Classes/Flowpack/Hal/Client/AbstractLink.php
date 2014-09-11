@@ -89,7 +89,7 @@ class AbstractLink {
 			return $this->href;
 		}
 
-		return str_replace('{rel}', $variables['rel'], $this->href);
+		return \TYPO3\Flow\Http\UriTemplate::expand($this->href, $variables);
 	}
 }
 
