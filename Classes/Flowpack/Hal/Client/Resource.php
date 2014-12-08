@@ -13,6 +13,7 @@ namespace Flowpack\Hal\Client;
 
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Http\Client\Browser;
+use TYPO3\Flow\Http\Request;
 use TYPO3\Flow\Http\Uri;
 
 /**
@@ -51,6 +52,9 @@ class Resource implements \ArrayAccess {
 	protected $baseUri;
 
 	/**
+	 * Construct a HAL Resource instance. Usually the static factory methods should be used to acquire usable
+	 * instances of HAL resources.
+	 *
 	 * @param Browser $browser
 	 * @param Uri $baseUri
 	 * @param array $properties
@@ -63,14 +67,7 @@ class Resource implements \ArrayAccess {
 		$this->properties = $properties;
 		$this->links = $links;
 		$this->embedded = $embedded;
-	}
 
-	/**
-	 *
-	 *
-	 * @return void
-	 */
-	public function initializeObject() {
 		$this->links = isset($this->properties['_links']) ? $this->properties['_links'] : $this->links;
 		$this->embedded = isset($this->properties['_embedded']) ? $this->properties['_embedded'] : $this->embedded;
 
@@ -85,24 +82,18 @@ class Resource implements \ArrayAccess {
 	}
 
 	/**
+	 * Create and return the HAL Resource found at the given $uri.
 	 *
-	 *
-	 * @param string|Uri $uri
-	 * @param Browser $browser
-	 * @param Uri $baseUri
+	 * @param string|Uri $uri URI to fetch the resource data from
+	 * @param Browser $browser The browser to use for fetching the resource data
+	 * @param Uri $baseUri Base uri to use, if omitted it is built from the $uri
 	 * @return Resource
 	 */
 	static public function createFromUri($uri, Browser $browser, Uri $baseUri = NULL) {
-		$response = $browser->request($uri);
-
-		if (substr($response->getHeader('Content-Type'), 0, 20) !== 'application/hal+json') {
-			throw new \RuntimeException('Invalid content type received: ' . $response->getHeader('Content-Type'), 1410345012);
-		}
-
-		$data = json_decode($response->getContent(), TRUE);
-
-		if ($data === NULL) {
-			throw new \RuntimeException('Invalid JSON format returned from ' . $uri, 1410259050);
+		if (is_string($uri)) {
+			$requestUri = new Uri($uri);
+		} else {
+			$requestUri = $uri;
 		}
 
 		if ($baseUri === NULL) {
@@ -114,6 +105,30 @@ class Resource implements \ArrayAccess {
 			$baseUri->setPath(NULL);
 			$baseUri->setFragment(NULL);
 			$baseUri->setQuery(NULL);
+		}
+
+		return self::createFromRequest(Request::create($requestUri), $browser, $baseUri);
+	}
+
+	/**
+	 * Create and return a HAL Resource with the data the request returns.
+	 *
+	 * @param Request $request The request to use for fetching the resource data
+	 * @param Browser $browser The browser to use for fetching the resource data
+	 * @param Uri $baseUri Base uri to use
+	 * @return Resource
+	 */
+	static public function createFromRequest($request, Browser $browser, Uri $baseUri) {
+		$response = $browser->sendRequest($request);
+
+		if (substr($response->getHeader('Content-Type'), 0, 20) !== 'application/hal+json') {
+			throw new \RuntimeException('Invalid content type received: ' . $response->getHeader('Content-Type'), 1410345012);
+		}
+
+		$data = json_decode($response->getContent(), TRUE);
+
+		if ($data === NULL) {
+			throw new \RuntimeException('Invalid JSON format returned from ' . $request->getUri(), 1410259050);
 		}
 
 		return new Resource($browser, $baseUri, $data);

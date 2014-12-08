@@ -26,7 +26,6 @@ class ResourceTest extends \TYPO3\Flow\Tests\UnitTestCase {
 	protected function setUp() {
 		$data = json_decode(file_get_contents(__DIR__ . '/Fixtures/Orders.json'), TRUE);
 		$this->resource = new Resource($this->getMock('TYPO3\Flow\Http\Client\Browser'), new \TYPO3\Flow\Http\Uri('http://localhost'), $data);
-		$this->resource->initializeObject();
 	}
 
 	/**
@@ -78,7 +77,6 @@ class ResourceTest extends \TYPO3\Flow\Tests\UnitTestCase {
 
 		$resource = $this->getMock('Flowpack\Hal\Client\Resource', array('getLinkValue'), array($this->getMock('TYPO3\Flow\Http\Client\Browser'), new \TYPO3\Flow\Http\Uri('http://localhost'), $data));
 		$resource->expects($this->atLeastOnce())->method('getLinkValue')->with('next');
-		$resource->initializeObject();
 
 		$resource->get('next');
 	}
@@ -206,10 +204,10 @@ class ResourceTest extends \TYPO3\Flow\Tests\UnitTestCase {
 	public function getLinkValueWouldReturnExpectedValueOnExistingLink() {
 		$data = json_decode(file_get_contents(__DIR__ . '/Fixtures/Orders.json'), TRUE);
 		$mockBrowser = $this->getMock('TYPO3\Flow\Http\Client\Browser');
-		$mockBrowser->expects($this->any())->method('request')->will($this->returnCallback(function($uri) {
+		$mockBrowser->expects($this->any())->method('sendRequest')->will($this->returnCallback(function(\TYPO3\Flow\Http\Request $request) {
 			$statusCode = 200;
 			$headers = array('Content-Type' => 'application/hal+json');
-			switch ($uri) {
+			switch ($request->getUri()) {
 				case 'http://localhost/orders?page=2':
 					$content = file_get_contents(__DIR__ . '/Fixtures/Orders2.json');
 					break;
@@ -227,7 +225,6 @@ class ResourceTest extends \TYPO3\Flow\Tests\UnitTestCase {
 
 
 		$resource = new \Flowpack\Hal\Client\Resource($mockBrowser, new \TYPO3\Flow\Http\Uri('http://localhost'), $data);
-		$resource->initializeObject();
 
 		$linkValue = $resource->getLinkValue('next');
 
