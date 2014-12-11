@@ -125,6 +125,10 @@ class Resource implements \ArrayAccess {
 			throw new \RuntimeException('Invalid content type received: ' . $response->getHeader('Content-Type'), 1410345012);
 		}
 
+		if ($response->getStatusCode() !== 200) {
+			throw new \RuntimeException('Response with unexpected status code returned for ' . $request->getUri() . ': ' . $response->getStatus(), 1418142491);
+		}
+
 		$data = json_decode($response->getContent(), TRUE);
 
 		if ($data === NULL) {
