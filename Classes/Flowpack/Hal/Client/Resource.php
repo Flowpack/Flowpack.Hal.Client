@@ -128,7 +128,7 @@ class Resource implements \ArrayAccess {
 		$data = json_decode($response->getContent(), TRUE);
 
 		if ($data === NULL) {
-			throw new \RuntimeException('Invalid JSON format returned from ' . $request->getUri(), 1410259050);
+			throw new \RuntimeException('Invalid JSON format returned from ' . $request->getUri() . ', JSON error: ' . json_last_error_msg(), 1410259050);
 		}
 
 		return new Resource($browser, $baseUri, $data);
