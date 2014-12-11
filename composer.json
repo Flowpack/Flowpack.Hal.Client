@@ -4,7 +4,7 @@
     "description": "HAL client support package for TYPO3 Flow",
     "license": "LGPL-3.0+",
     "require": {
-        "php": ">=5.5.0",
+        "php": ">=5.4.0",
         "typo3/flow": "*"
     },
     "autoload": {
