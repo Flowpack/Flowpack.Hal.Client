@@ -11,9 +11,9 @@ namespace Flowpack\Hal\Client\Command;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
-use TYPO3\Flow\Annotations as Flow;
-use TYPO3\Flow\Cli\CommandController;
-use TYPO3\Flow\Http\Client\Browser;
+use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Cli\CommandController;
+use Neos\Flow\Http\Client\Browser;
 
 /**
  * @Flow\Scope("singleton")
@@ -33,7 +33,7 @@ class HalCommandController extends CommandController {
 	 * @return void
 	 */
 	public function testCommand($uri) {
-		$engine = new \TYPO3\Flow\Http\Client\CurlEngine();
+		$engine = new \Neos\Flow\Http\Client\CurlEngine();
 		$this->browser->setRequestEngine($engine);
 
 		$resource = \Flowpack\Hal\Client\Resource::createFromUri($uri, $this->browser);

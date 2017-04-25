@@ -11,9 +11,9 @@ namespace Flowpack\Hal\Client;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
-use TYPO3\Flow\Annotations as Flow;
-use TYPO3\Flow\Http\Client\Browser;
-use TYPO3\Flow\Http\Uri;
+use Neos\Flow\Annotations as Flow;
+use Neos\Flow\Http\Client\Browser;
+use Neos\Flow\Http\Uri;
 
 /**
  * ResourceCollection
