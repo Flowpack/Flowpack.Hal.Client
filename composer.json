@@ -1,15 +1,15 @@
 {
     "name": "flowpack/hal-client",
-    "type": "typo3-flow-package",
-    "description": "HAL client support package for TYPO3 Flow",
+    "type": "neos-package",
+    "description": "HAL client support package for Neos Flow",
     "license": "LGPL-3.0+",
     "require": {
-        "php": ">=5.4.0",
-        "typo3/flow": "*"
+        "php": "~7.0",
+        "neos/flow": "~4.0"
     },
     "autoload": {
-        "psr-0": {
-            "Flowpack\\Hal\\Client": "Classes"
+        "psr-4": {
+            "Flowpack\\Hal\\Client\\": "Classes"
         }
     },
     "extra": {
