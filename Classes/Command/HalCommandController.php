@@ -11,16 +11,17 @@ namespace Flowpack\Hal\Client\Command;
  * source code.
  */
 
+use Flowpack\Hal\Client\HalResource;
 use Neos\Flow\Annotations as Flow;
 use Neos\Flow\Cli\CommandController;
 use Neos\Flow\Http\Client\Browser;
+use Neos\Flow\Http\Client\CurlEngine;
 
 /**
  * @Flow\Scope("singleton")
  */
 class HalCommandController extends CommandController
 {
-
     /**
      * @Flow\Inject
      * @var Browser
@@ -35,10 +36,10 @@ class HalCommandController extends CommandController
      */
     public function testCommand($uri)
     {
-        $engine = new \Neos\Flow\Http\Client\CurlEngine();
+        $engine = new CurlEngine();
         $this->browser->setRequestEngine($engine);
 
-        $resource = \Flowpack\Hal\Client\Resource::createFromUri($uri, $this->browser);
+        $resource = HalResource::createFromUri($uri, $this->browser);
 
         $this->outputLine('Properties');
         foreach ($resource->getProperties() as $k => $v) {

@@ -17,4 +17,3 @@ namespace Flowpack\Hal\Client;
 class Curie extends AbstractLink
 {
 }
-

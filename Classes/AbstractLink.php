@@ -11,12 +11,13 @@ namespace Flowpack\Hal\Client;
  * source code.
  */
 
+use Neos\Flow\Http\UriTemplate;
+
 /**
  * Link
  */
 class AbstractLink
 {
-
     /**
      * @var string
      */
@@ -93,7 +94,7 @@ class AbstractLink
             return $this->href;
         }
 
-        return \Neos\Flow\Http\UriTemplate::expand($this->href, $variables);
+        return UriTemplate::expand($this->href, $variables);
     }
 }
 

@@ -15,11 +15,10 @@ use Neos\Flow\Http\Client\Browser;
 use Neos\Flow\Http\Uri;
 
 /**
- * ResourceCollection
+ * HalResourceCollection
  */
-class ResourceCollection implements \Iterator, \Countable, \ArrayAccess
+class HalResourceCollection implements \Iterator, \Countable, \ArrayAccess
 {
-
     /**
      * @var \ArrayIterator
      */
@@ -58,7 +57,7 @@ class ResourceCollection implements \Iterator, \Countable, \ArrayAccess
             return null;
         }
 
-        if (!$resource instanceof Resource) {
+        if (!$resource instanceof HalResource) {
             $resource = $this->createResource($resource);
             $this->iterator->offsetSet($this->iterator->key(), $resource);
         }
@@ -136,7 +135,7 @@ class ResourceCollection implements \Iterator, \Countable, \ArrayAccess
             return null;
         }
 
-        if (!$resource instanceof Resource) {
+        if (!$resource instanceof HalResource) {
             $resource = $this->createResource($resource);
             $this->iterator->offsetSet($offset, $resource);
         }
@@ -162,11 +161,11 @@ class ResourceCollection implements \Iterator, \Countable, \ArrayAccess
 
     /**
      * @param array $data
-     * @return Resource
+     * @return HalResource
      */
     protected function createResource(array $data)
     {
-        return new Resource($this->browser, $this->baseUri, $data);
+        return new HalResource($this->browser, $this->baseUri, $data);
     }
 
 }

@@ -11,14 +11,11 @@ namespace Flowpack\Hal\Client;
  * source code.
  */
 
-use Neos\Flow\Http\Client\Browser;
-
 /**
  * Link
  */
 class Link extends AbstractLink
 {
-
     /**
      * @var string
      * @see http://www.w3.org/TR/curie/#s_syntax
@@ -59,7 +56,6 @@ class Link extends AbstractLink
      * Constructor.
      *
      * @param array $data
-     * @param Browser $browser
      */
     public function __construct(array $data)
     {

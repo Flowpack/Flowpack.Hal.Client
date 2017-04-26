@@ -16,11 +16,10 @@ use Neos\Flow\Http\Request;
 use Neos\Flow\Http\Uri;
 
 /**
- * Resource
+ * HalResource
  */
-class Resource implements \ArrayAccess
+class HalResource implements \ArrayAccess
 {
-
     /**
      * @var array
      */
@@ -52,8 +51,8 @@ class Resource implements \ArrayAccess
     protected $baseUri;
 
     /**
-     * Construct a HAL Resource instance. Usually the static factory methods should be used to acquire usable
-     * instances of HAL resources.
+     * Construct a HalResource instance. Usually the static factory methods should be used to acquire usable
+     * instances of HalResource.
      *
      * @param Browser $browser
      * @param Uri $baseUri
@@ -83,12 +82,12 @@ class Resource implements \ArrayAccess
     }
 
     /**
-     * Create and return the HAL Resource found at the given $uri.
+     * Create and return the HalResource found at the given $uri.
      *
      * @param string|Uri $uri URI to fetch the resource data from
      * @param Browser $browser The browser to use for fetching the resource data
      * @param Uri $baseUri Base uri to use, if omitted it is built from the $uri
-     * @return Resource
+     * @return HalResource
      */
     static public function createFromUri($uri, Browser $browser, Uri $baseUri = null)
     {
@@ -113,12 +112,12 @@ class Resource implements \ArrayAccess
     }
 
     /**
-     * Create and return a HAL Resource with the data the request returns.
+     * Create and return a HalResource with the data the request returns.
      *
      * @param Request $request The request to use for fetching the resource data
      * @param Browser $browser The browser to use for fetching the resource data
      * @param Uri $baseUri Base uri to use
-     * @return Resource
+     * @return HalResource
      */
     static public function createFromRequest($request, Browser $browser, Uri $baseUri)
     {
@@ -142,7 +141,7 @@ class Resource implements \ArrayAccess
             throw new \RuntimeException($message, 1410259050);
         }
 
-        return new Resource($browser, $baseUri, $data);
+        return new HalResource($browser, $baseUri, $data);
     }
 
     /**
@@ -161,7 +160,7 @@ class Resource implements \ArrayAccess
      * The existence is checked in this order: property, embedded, link.
      *
      * @param string $name
-     * @return Resource|ResourceCollection|NULL
+     * @return HalResource|HalResourceCollection|NULL
      */
     public function get($name)
     {
@@ -218,15 +217,15 @@ class Resource implements \ArrayAccess
 
     /**
      * @param string $name
-     * @return Resource|ResourceCollection
+     * @return HalResource|HalResourceCollection
      */
     public function getEmbedded($name)
     {
         if (!is_object($this->embedded[$name])) {
             if (is_integer(key($this->embedded[$name])) || empty($this->embedded[$name])) {
-                $this->embedded[$name] = new ResourceCollection($this->browser, $this->baseUri, $this->embedded[$name]);
+                $this->embedded[$name] = new HalResourceCollection($this->browser, $this->baseUri, $this->embedded[$name]);
             } else {
-                $this->embedded[$name] = new Resource($this->browser, $this->baseUri, $this->embedded[$name]);
+                $this->embedded[$name] = new HalResource($this->browser, $this->baseUri, $this->embedded[$name]);
             }
         }
 
@@ -235,7 +234,7 @@ class Resource implements \ArrayAccess
 
     /**
      * @return array
-     * @todo should this return an array of resource instances?
+     * @todo should this return an array of HalResource instances?
      */
     public function getEmbeddeds()
     {
@@ -294,11 +293,11 @@ class Resource implements \ArrayAccess
     }
 
     /**
-     * Returns a resource built from the link with the given name.
+     * Returns a HalResource built from the link with the given name.
      *
      * @param string $name
      * @param array $variables Required if the link is templated
-     * @return Resource|ResourceCollection
+     * @return HalResource|HalResourceCollection
      * @todo support link collections
      */
     public function getLinkValue($name, array $variables = [])
