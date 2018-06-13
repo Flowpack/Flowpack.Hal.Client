@@ -304,7 +304,7 @@ class HalResource implements \ArrayAccess
     {
         $uri = new Uri($this->getLink($name)->getHref($variables));
 
-        if ($uri->getHost() === null) {
+        if ($uri->getHost() === null || $uri->getHost() === '') {
             $uri->setScheme($this->baseUri->getScheme());
             $uri->setHost($this->baseUri->getHost());
             $uri->setPath($this->baseUri->getPath() . $uri->getPath());
