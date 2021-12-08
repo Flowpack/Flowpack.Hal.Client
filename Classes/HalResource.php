@@ -12,8 +12,10 @@ namespace Flowpack\Hal\Client;
  */
 
 use Neos\Flow\Http\Client\Browser;
-use Neos\Flow\Http\Request;
-use Neos\Flow\Http\Uri;
+use Psr\Http\Message\UriInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use GuzzleHttp\Psr7\Uri;
+use GuzzleHttp\Psr7\ServerRequest;
 
 /**
  * HalResource
@@ -46,7 +48,7 @@ class HalResource implements \ArrayAccess
     protected $browser;
 
     /**
-     * @var Uri
+     * @var UriInterface
      */
     protected $baseUri;
 
@@ -55,12 +57,12 @@ class HalResource implements \ArrayAccess
      * instances of HalResource.
      *
      * @param Browser $browser
-     * @param Uri $baseUri
+     * @param UriInterface $baseUri
      * @param array $properties
      * @param array $links
      * @param array $embedded
      */
-    public function __construct(Browser $browser, Uri $baseUri, array $properties, array $links = [], array $embedded = [])
+    public function __construct(Browser $browser, UriInterface $baseUri, array $properties, array $links = [], array $embedded = [])
     {
         $this->browser = $browser;
         $this->baseUri = $baseUri;
@@ -84,12 +86,12 @@ class HalResource implements \ArrayAccess
     /**
      * Create and return the HalResource found at the given $uri.
      *
-     * @param string|Uri $uri URI to fetch the resource data from
+     * @param string|UriInterface $uri URI to fetch the resource data from
      * @param Browser $browser The browser to use for fetching the resource data
-     * @param Uri $baseUri Base uri to use, if omitted it is built from the $uri
+     * @param UriInterface $baseUri Base uri to use, if omitted it is built from the $uri
      * @return HalResource
      */
-    static public function createFromUri($uri, Browser $browser, Uri $baseUri = null)
+    static public function createFromUri($uri, Browser $browser, UriInterface $baseUri = null)
     {
         if (is_string($uri)) {
             $requestUri = new Uri($uri);
@@ -103,35 +105,33 @@ class HalResource implements \ArrayAccess
             } else {
                 $baseUri = clone $uri;
             }
-            $baseUri->setPath(null);
-            $baseUri->setFragment(null);
-            $baseUri->setQuery(null);
+            $baseUri = $baseUri->withPath('')->withQuery('')->withFragment('');
         }
 
-        return self::createFromRequest(Request::create($requestUri), $browser, $baseUri);
+        return self::createFromRequest(new ServerRequest('get', $requestUri), $browser, $baseUri);
     }
 
     /**
      * Create and return a HalResource with the data the request returns.
      *
-     * @param Request $request The request to use for fetching the resource data
+     * @param ServerRequestInterface $request The request to use for fetching the resource data
      * @param Browser $browser The browser to use for fetching the resource data
-     * @param Uri $baseUri Base uri to use
+     * @param UriInterface $baseUri Base uri to use
      * @return HalResource
      */
-    static public function createFromRequest($request, Browser $browser, Uri $baseUri)
+    static public function createFromRequest(ServerRequestInterface $request, Browser $browser, UriInterface $baseUri)
     {
         $response = $browser->sendRequest($request);
 
-        if (substr($response->getHeader('Content-Type'), 0, 20) !== 'application/hal+json') {
-            throw new \RuntimeException('Invalid content type received: ' . $response->getHeader('Content-Type'), 1410345012);
+        if (substr($response->getHeaderLine('Content-Type'), 0, 20) !== 'application/hal+json') {
+            throw new \RuntimeException('Invalid content type received: ' . $response->getHeaderLine('Content-Type'), 1410345012);
         }
 
         if ($response->getStatusCode() !== 200) {
-            throw new \RuntimeException('Response with unexpected status code returned for ' . $request->getUri() . ': ' . $response->getStatus(), 1418142491);
+            throw new \RuntimeException('Response with unexpected status code returned for ' . $request->getUri() . ': ' . $response->getStatusCode(), 1418142491);
         }
 
-        $data = json_decode($response->getContent(), true);
+        $data = json_decode($response->getBody()->getContents(), true);
 
         if ($data === null) {
             $message = 'Invalid JSON format returned from ' . $request->getUri() . ', JSON error code: ' . json_last_error();
@@ -305,9 +305,10 @@ class HalResource implements \ArrayAccess
         $uri = new Uri($this->getLink($name)->getHref($variables));
 
         if ($uri->getHost() === null || $uri->getHost() === '') {
-            $uri->setScheme($this->baseUri->getScheme());
-            $uri->setHost($this->baseUri->getHost());
-            $uri->setPath($this->baseUri->getPath() . $uri->getPath());
+            $uri = $uri
+                ->withScheme($this->baseUri->getScheme())
+                ->withHost($this->baseUri->getHost())
+                ->withPath($this->baseUri->getPath() . $uri->getPath());
         }
 
         return self::createFromUri($uri, $this->browser);
