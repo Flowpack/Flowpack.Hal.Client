@@ -12,7 +12,7 @@ namespace Flowpack\Hal\Client;
  */
 
 use Neos\Flow\Http\Client\Browser;
-use Neos\Flow\Http\Uri;
+use Psr\Http\Message\UriInterface;
 
 /**
  * HalResourceCollection
@@ -30,16 +30,16 @@ class HalResourceCollection implements \Iterator, \Countable, \ArrayAccess
     protected $browser;
 
     /**
-     * @var Uri
+     * @var UriInterface
      */
     protected $baseUri;
 
     /**
      * @param Browser $browser
-     * @param Uri $baseUri
+     * @param UriInterface $baseUri
      * @param array $collection
      */
-    public function __construct(Browser $browser, Uri $baseUri, array $collection = [])
+    public function __construct(Browser $browser, UriInterface $baseUri, array $collection = [])
     {
         $this->baseUri = $baseUri;
 
